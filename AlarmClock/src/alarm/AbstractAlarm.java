@@ -156,7 +156,7 @@ public abstract class AbstractAlarm implements IAlarm, Cloneable {
 		Instant inst = alarmDate.toInstant();
 
 		TimeZone tz = TimeZone.getDefault();
-		boolean DSTBefore = tz.inDaylightTime(new Date(inst.getEpochSecond()));
+		boolean DSTBefore = tz.inDaylightTime(new Date(inst.toEpochMilli()));
 
 		switch (getRepetitionCycle()) {
 		case DAYLY:
