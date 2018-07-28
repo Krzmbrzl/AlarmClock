@@ -24,25 +24,23 @@ import util.Util;
  *
  */
 public class AlarmManager implements Serializable, IAlarmListener {
-	
+
 	private static final long serialVersionUID = 4283031660055197487L;
-	
-	public static final String PROGRAM_DIR = System.getProperty("user.home")
-			+ File.separator + ".AlarmClock";
-	
-	public static final String SAVE_PATH = PROGRAM_DIR + File.separator
-			+ "AlarmManager.ser";
-	
+
+	public static final String PROGRAM_DIR = System.getProperty("user.home") + File.separator + ".AlarmClock";
+
+	public static final String SAVE_PATH = PROGRAM_DIR + File.separator + "AlarmManager.ser";
+
 	/**
 	 * The manager instance
 	 */
 	protected static transient AlarmManager MANAGER;
 	/**
-	 * The comparator used for sorting the alarms. It will sort them based on
-	 * the set date
+	 * The comparator used for sorting the alarms. It will sort them based on the
+	 * set date
 	 */
 	public static final Comparator<IAlarm> ALARM_COMPARATOR = new Comparator<IAlarm>() {
-		
+
 		@Override
 		public int compare(IAlarm a1, IAlarm a2) {
 			if (!a1.isActive()) {
@@ -58,14 +56,14 @@ public class AlarmManager implements Serializable, IAlarmListener {
 			return a1.getAlarmDate().compareTo(a2.getAlarmDate());
 		}
 	};
-	
+
 	protected transient Thread alarmThread;
-	
+
 	/**
 	 * A list of programmed alarms
 	 */
 	protected List<IAlarm> alarms;
-	
+
 	/**
 	 * The currently active alarm
 	 */
@@ -74,38 +72,38 @@ public class AlarmManager implements Serializable, IAlarmListener {
 	 * The lock used whenever an alarm or the alarm list is modified
 	 */
 	protected ReentrantLock alarmLock;
-	
+
 	/**
 	 * A list of all alarm listeners
 	 */
 	protected transient List<IAlarmManagerListener> alarmListener;
-	
-	
+
+
 	protected AlarmManager() {
 		alarms = new ArrayList<IAlarm>();
-		
+
 		alarmLock = new ReentrantLock();
 	}
-	
+
 	/**
 	 * Gets the current instance of the alarm manager
 	 */
 	public static final AlarmManager getManager() {
 		initialize();
-		
+
 		return MANAGER;
 	}
-	
+
 	/**
 	 * Initializes the manager
 	 */
 	public static final void initialize() {
 		File saveDir = new File(PROGRAM_DIR);
-		
+
 		if (!saveDir.exists()) {
 			saveDir.mkdirs();
 		}
-		
+
 		if (MANAGER == null) {
 			if (new File(SAVE_PATH).exists()) {
 				MANAGER = load();
@@ -115,7 +113,7 @@ public class AlarmManager implements Serializable, IAlarmListener {
 			}
 		}
 	}
-	
+
 	/**
 	 * Adds the given alarm to this manager
 	 * 
@@ -125,25 +123,23 @@ public class AlarmManager implements Serializable, IAlarmListener {
 	 *            Indicates whether the liostener should be notified about this
 	 *            change
 	 * @param reconfigure
-	 *            Inidcates whether the alarms should be reconfigured
-	 *            automatically
+	 *            Inidcates whether the alarms should be reconfigured automatically
 	 */
-	protected void addAlarm(IAlarm alarm, boolean notifyListener,
-			boolean reconfigure) {
+	protected void addAlarm(IAlarm alarm, boolean notifyListener, boolean reconfigure) {
 		synchronized (alarmLock) {
 			alarms.add(alarm);
 			alarm.addAlarmListener(this);
 		}
-		
+
 		if (notifyListener) {
 			notifyAlarmsChanged();
 		}
-		
+
 		if (reconfigure) {
 			reconfigureAlarms();
 		}
 	}
-	
+
 	/**
 	 * Adds the given alarm to this manager
 	 * 
@@ -153,35 +149,33 @@ public class AlarmManager implements Serializable, IAlarmListener {
 	public void addAlarm(IAlarm alarm) {
 		addAlarm(alarm, true, true);
 	}
-	
+
 	/**
-	 * Removes the given alarm fro this manager
+	 * Removes the given alarm from this manager
 	 * 
 	 * @param alarm
 	 *            The alarm to remove
 	 * @param notifyListener
-	 *            Indicates whether the liostener should be notified about this
+	 *            Indicates whether the listener should be notified about this
 	 *            change
 	 * @param reconfigure
-	 *            Inidcates whether the alarms should be reconfigured
-	 *            automatically
+	 *            Indicates whether the alarms should be reconfigured automatically
 	 */
-	protected void removeAlarm(IAlarm alarm, boolean notifyListener,
-			boolean reconfigure) {
+	protected void removeAlarm(IAlarm alarm, boolean notifyListener, boolean reconfigure) {
 		synchronized (alarmLock) {
 			alarms.remove(alarm);
 			alarm.removeAlarmListener(this);
 		}
-		
+
 		if (notifyListener) {
 			notifyAlarmsChanged();
 		}
-		
+
 		if (reconfigure) {
 			reconfigureAlarms();
 		}
 	}
-	
+
 	/**
 	 * Removes the given alarm fro this manager
 	 * 
@@ -191,7 +185,7 @@ public class AlarmManager implements Serializable, IAlarmListener {
 	public void removeAlarm(IAlarm alarm) {
 		removeAlarm(alarm, true, true);
 	}
-	
+
 	/**
 	 * Adds the given alarm group to this manager
 	 * 
@@ -204,12 +198,12 @@ public class AlarmManager implements Serializable, IAlarmListener {
 				addAlarm(currentAlarm, false, false);
 			}
 		}
-		
+
 		reconfigureAlarms();
-		
+
 		notifyAlarmsChanged();
 	}
-	
+
 	/**
 	 * Removes the given alarm group from this manager
 	 * 
@@ -222,12 +216,12 @@ public class AlarmManager implements Serializable, IAlarmListener {
 				removeAlarm(currentAlarm, false, false);
 			}
 		}
-		
+
 		reconfigureAlarms();
-		
+
 		notifyAlarmsChanged();
 	}
-	
+
 	/**
 	 * Gets a list of all alarms that this manager currently holds
 	 */
@@ -236,86 +230,90 @@ public class AlarmManager implements Serializable, IAlarmListener {
 			return alarms;
 		}
 	}
-	
+
 	/**
 	 * Reconfigures the set alarms
 	 */
 	protected void reconfigureAlarms() {
 		boolean requeueAlarms = false;
-		
+
 		removeOutdatedAlarms();
-		
+
 		synchronized (alarmLock) {
 			if (alarms.size() == 0) {
+				if (alarmThread != null) {
+					// make sure there the currently queued alarm is being removed as well
+					alarmThread.interrupt();
+				}
+
 				return;
 			}
-			
+
 			if (alarms.size() == 1) {
 				requeueAlarms = !alarms.get(0).equals(currentAlarm);
 			} else {
 				requeueAlarms = !alarms.get(0).equals(currentAlarm);
 			}
 		}
-		
+
 		if (requeueAlarms) {
 			queueAlarms();
 		}
 	}
-	
+
 	/**
 	 * Queues the current alarms for execution. This will create the
-	 * {@link #alarmThread} which will sleep until the time for the first alarm
-	 * in the list is reached. Afterwards it will be invoked and the list will
-	 * be updated if necessary. This loop will continue until the Thread is
-	 * interrupted or there are no more alarms.<br>
-	 * This mehtod will also interrupt {@link #alarmThread} if it does already
-	 * exist and will create a new one instead
+	 * {@link #alarmThread} which will sleep until the time for the first alarm in
+	 * the list is reached. Afterwards it will be invoked and the list will be
+	 * updated if necessary. This loop will continue until the Thread is interrupted
+	 * or there are no more alarms.<br>
+	 * This method will also interrupt {@link #alarmThread} if it does already exist
+	 * and will create a new one instead
 	 */
 	protected void queueAlarms() {
 		if (alarmThread != null) {
 			// Stop the thread in order to requeue
 			alarmThread.interrupt();
 		}
-		
+
 		alarmThread = new Thread(new Runnable() {
-			
+
 			@Override
 			public void run() {
 				// loop as long as there are alarms
 				alarmLock.lock();
-				
+
 				// counter for how often the system has failed to retrieve the
 				// time
 				int timeFailures = 0;
-				
+
 				while (alarms.size() > 0 && alarms.get(0).isActive()) {
 					try {
 						if (Thread.currentThread().isInterrupted()) {
 							throw new InterruptedException();
 						}
 						currentAlarm = alarms.get(0);
-						
+
 						if (currentAlarm == null) {
 							// something went wrong
 							break;
 						}
-						
+
 						long currentTime;
 						try {
 							currentTime = Util.getNTPTime();
 							timeFailures = 0;
 						} catch (NTPException e1) {
 							e1.printStackTrace();
-							
+
 							if (timeFailures > 180) { // Try for half an hour
 								// TODO: add note that the alarm is being
-								// invoked because the time couldn*t be
+								// invoked because the time couldn't be
 								// retrieved
-								currentTime = currentAlarm.getAlarmDate()
-										.getTime();
+								currentTime = currentAlarm.getAlarmDate().getTime();
 							} else {
 								timeFailures++;
-								
+
 								// the time could not be retrieved -> continue
 								// until it is
 								Thread.sleep(10000); // Try again after ten
@@ -323,16 +321,15 @@ public class AlarmManager implements Serializable, IAlarmListener {
 								continue;
 							}
 						}
-						
-						long timeDiff = currentAlarm.getAlarmDate().getTime()
-								- currentTime;
-						
+
+						long timeDiff = currentAlarm.getAlarmDate().getTime() - currentTime;
+
 						if (timeDiff > 0) {
 							// Don't lock while sleeping
 							alarmLock.unlock();
-							
+
 							Thread.sleep(timeDiff);
-							
+
 							alarmLock.lock();
 						} else {
 							if (timeDiff < 1000 * 60 * 120) {
@@ -343,21 +340,21 @@ public class AlarmManager implements Serializable, IAlarmListener {
 								continue;
 							}
 						}
-						
+
 						if (currentAlarm == null) {
 							try {
 								throw new Exception("Current alarm is null!");
 							} catch (Exception e) {
 								e.printStackTrace();
-								
+
 								break;
 							}
 						}
-						
+
 						// the respective time has passed
 						currentAlarm.invoke();
 						notifyAlarmInvoked(currentAlarm);
-						
+
 						rescheduleCurrentAlarm();
 					} catch (InterruptedException e) {
 						if (alarmLock.isHeldByCurrentThread()) {
@@ -366,7 +363,7 @@ public class AlarmManager implements Serializable, IAlarmListener {
 						return;
 					}
 				}
-				
+
 				// The cycle has been interrupted or there are no more
 				// alarms
 				if (alarms.size() > 0 && alarms.get(0).isActive()) {
@@ -381,13 +378,13 @@ public class AlarmManager implements Serializable, IAlarmListener {
 				}
 			}
 		});
-		
+
 		alarmThread.start();
 	}
-	
+
 	/**
-	 * Reschedules the current alarm. This method gets called when the current
-	 * alarm has been invoked (or cancelled because it was way to late
+	 * Reschedules the current alarm. This method gets called when the current alarm
+	 * has been invoked (or cancelled because it was way to late
 	 */
 	protected void rescheduleCurrentAlarm() {
 		if (currentAlarm.getRepetitionCycle() != ERepetition.NONE) {
@@ -401,14 +398,14 @@ public class AlarmManager implements Serializable, IAlarmListener {
 			}
 		}
 	}
-	
+
 	/**
 	 * Gets the currently active alarm
 	 */
 	public IAlarm getActiveAlarm() {
 		return currentAlarm;
 	}
-	
+
 	/**
 	 * Adds the given alarm listener to this manager
 	 * 
@@ -417,14 +414,14 @@ public class AlarmManager implements Serializable, IAlarmListener {
 	 */
 	public void addAlarmManagerListener(IAlarmManagerListener listener) {
 		assert (listener != null);
-		
+
 		synchronized (getAlarmListener()) {
 			getAlarmListener().add(listener);
 		}
-		
+
 		save();
 	}
-	
+
 	/**
 	 * Removes the given alarm listener from this manager
 	 * 
@@ -435,25 +432,25 @@ public class AlarmManager implements Serializable, IAlarmListener {
 		synchronized (getAlarmListener()) {
 			getAlarmListener().remove(listener);
 		}
-		
+
 		save();
 	}
-	
+
 	/**
 	 * Gets all set alarms as groups.<br>
-	 * If an alarm is part of a group the respective group is returned otherwise
-	 * the alarm will be added to it's own unnamed group
+	 * If an alarm is part of a group the respective group is returned otherwise the
+	 * alarm will be added to it's own unnamed group
 	 */
 	public List<AlarmGroup> getAllAlarmsAsGroups() {
 		List<AlarmGroup> groups = new ArrayList<AlarmGroup>();
-		
+
 		for (IAlarm currentAlarm : getAlarms()) {
 			AlarmGroup currentGroup = currentAlarm.getGroup();
-			
+
 			if (currentGroup == null) {
 				currentGroup = new AlarmGroup("");
 				currentGroup.addAlarm(currentAlarm);
-				
+
 				groups.add(currentGroup);
 			} else {
 				if (!groups.contains(currentGroup)) {
@@ -461,10 +458,10 @@ public class AlarmManager implements Serializable, IAlarmListener {
 				}
 			}
 		}
-		
+
 		return groups;
 	}
-	
+
 	/**
 	 * Notifies the registered alarm listeners about the invokation of the given
 	 * alarm in a new thread
@@ -478,9 +475,9 @@ public class AlarmManager implements Serializable, IAlarmListener {
 				return;
 			}
 		}
-		
+
 		new Thread(new Runnable() {
-			
+
 			@Override
 			public void run() {
 				synchronized (getAlarmListener()) {
@@ -491,35 +488,34 @@ public class AlarmManager implements Serializable, IAlarmListener {
 			}
 		}).start();
 	}
-	
+
 	/**
 	 * Notifies the registered alarm listeners about changes in the alarm list
 	 */
 	protected void notifyAlarmsChanged() {
 		save();
-		
+
 		synchronized (getAlarmListener()) {
 			if (getAlarmListener().size() == 0) {
 				return;
 			}
-			
+
 			for (IAlarmManagerListener currentListener : getAlarmListener()) {
 				currentListener.alarmsChanged();
 			}
 		}
 	}
-	
+
 	/**
 	 * Saves this manager to disk
 	 */
 	protected void save() {
 		try {
 			alarmLock.lock();
-			ObjectOutputStream out = new ObjectOutputStream(
-					new FileOutputStream(SAVE_PATH));
-			
+			ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(SAVE_PATH));
+
 			out.writeObject(this);
-			
+
 			out.close();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -527,7 +523,7 @@ public class AlarmManager implements Serializable, IAlarmListener {
 			alarmLock.unlock();
 		}
 	}
-	
+
 	/**
 	 * Loads the saved manager from disk. Note that this method assumes that the
 	 * saved file does exist!
@@ -535,17 +531,16 @@ public class AlarmManager implements Serializable, IAlarmListener {
 	protected static AlarmManager load() {
 		AlarmManager manager = null;
 		try {
-			ObjectInputStream in = new ObjectInputStream(
-					new FileInputStream(SAVE_PATH));
+			ObjectInputStream in = new ObjectInputStream(new FileInputStream(SAVE_PATH));
 			manager = (AlarmManager) in.readObject();
 			in.close();
 		} catch (IOException | ClassNotFoundException e) {
 			e.printStackTrace();
 		}
-		
+
 		return manager;
 	}
-	
+
 	/**
 	 * Clears the list of alarm listeners
 	 */
@@ -554,12 +549,12 @@ public class AlarmManager implements Serializable, IAlarmListener {
 			getAlarmListener().clear();
 		}
 	}
-	
+
 	@Override
 	public void alarmInvoked(IAlarm alarm) {
 		// ignore
 	}
-	
+
 	@Override
 	public void alarmChanged(IAlarm alarm) {
 		if (alarm.equals(currentAlarm)) {
@@ -568,34 +563,34 @@ public class AlarmManager implements Serializable, IAlarmListener {
 		} else {
 			reconfigureAlarms();
 		}
-		
+
 		notifyAlarmsChanged();
 	}
-	
+
 	/**
 	 * Removes all outdated alarms from the alarm list
 	 */
 	protected void removeOutdatedAlarms() {
 		alarmLock.lock();
-		
+
 		ArrayList<IAlarm> alarmsCopy = new ArrayList<IAlarm>(alarms);
 		int removals = 0;
-		
+
 		for (int i = 0; i < alarmsCopy.size(); i++) {
 			if (alarmsCopy.get(i).isOutDated()) {
 				alarms.remove(i - removals);
 				removals++;
 			}
 		}
-		
+
 		alarms.sort(ALARM_COMPARATOR);
-		
+
 		alarmLock.unlock();
 	}
-	
+
 	/**
-	 * Gets the list of listeners attached to this AlarmManager. If there is no
-	 * list initialized yet a new one will be created
+	 * Gets the list of listeners attached to this AlarmManager. If there is no list
+	 * initialized yet a new one will be created
 	 * 
 	 * @return The respective list
 	 */
@@ -603,7 +598,7 @@ public class AlarmManager implements Serializable, IAlarmListener {
 		if (alarmListener == null) {
 			alarmListener = new ArrayList<IAlarmManagerListener>();
 		}
-		
+
 		return alarmListener;
 	}
 }
