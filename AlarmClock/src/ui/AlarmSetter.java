@@ -152,9 +152,15 @@ public class AlarmSetter extends FontInheritComposite {
 				cal.set(Calendar.DAY_OF_WEEK, day.plus(1).getValue());
 			}
 			
-			group.addAlarm(new MusicAlarm(cal.getTime(),
-					(repeat) ? ERepetition.WEEKLY : ERepetition.NONE,
-					MusicAlarm.getDefaultMusicDir()));
+			try {
+				group.addAlarm(new MusicAlarm(cal.getTime(),
+						(repeat) ? ERepetition.WEEKLY : ERepetition.NONE,
+						MusicAlarm.getDefaultMusicDir()));
+			} catch (Exception e) {
+				// Don't add the alarm
+				// TODO: notify
+				e.printStackTrace();
+			}
 		}
 		
 		return group;

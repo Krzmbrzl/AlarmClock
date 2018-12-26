@@ -56,7 +56,7 @@ public class Starter {
 	 */
 	protected static int displayOffDelay = 8000;
 	/**
-	 * Inidcates whether the display has been turned off
+	 * Indicates whether the display has been turned off
 	 */
 	protected static AtomicBoolean displayTurnedOff = new AtomicBoolean(false);
 	/**
