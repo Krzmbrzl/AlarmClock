@@ -105,7 +105,8 @@ public class AlarmManager implements Serializable, IAlarmListener {
 		}
 
 		if (MANAGER == null) {
-			if (new File(SAVE_PATH).exists()) {
+			File savedFile = new File(SAVE_PATH);
+			if (savedFile.exists() && savedFile.length() > 0) {
 				MANAGER = load();
 				MANAGER.queueAlarms();
 			} else {
@@ -512,11 +513,22 @@ public class AlarmManager implements Serializable, IAlarmListener {
 	protected void save() {
 		try {
 			alarmLock.lock();
-			ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(SAVE_PATH));
+			// write to temp-file first
+			String tempName = SAVE_PATH + ".new.tmp";
+
+			ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(tempName));
 
 			out.writeObject(this);
 
 			out.close();
+
+			// if temp file seems okay overwrite the actual file and delete temp-file
+			File tempFile = new File(tempName);
+			if (tempFile.exists() && tempFile.length() > 0) {
+				tempFile.renameTo(new File(SAVE_PATH));
+			}
+			
+			tempFile.delete();
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
