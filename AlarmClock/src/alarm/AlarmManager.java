@@ -114,6 +114,13 @@ public class AlarmManager implements Serializable, IAlarmListener {
 			}
 		}
 	}
+	
+	public final void shutdown() {
+		if (alarmThread != null) {
+			// close the background thread
+			alarmThread.interrupt();
+		}
+	}
 
 	/**
 	 * Adds the given alarm to this manager

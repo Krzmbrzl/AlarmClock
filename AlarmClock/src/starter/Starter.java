@@ -191,54 +191,53 @@ public class Starter {
 		public void alarmsChanged() {
 			// display next alarm time
 			final List<IAlarm> alarms = AlarmManager.getManager().getAlarms();
-			
+
 			Display display = Display.getDefault();
-			
+
 			display.asyncExec(new Runnable() {
-				
+
 				@Override
 				public void run() {
 					Shell parentShell = null;
-					
+
 					for (Shell currentShell : display.getShells()) {
 						if (currentShell.getLayout() instanceof StackLayout) {
 							parentShell = currentShell;
 							break;
 						}
 					}
-					
+
 					if (parentShell == null) {
 						return;
 					}
-					
-					Shell shell = new Shell(display,
-							SWT.NO_TRIM | SWT.NO_BACKGROUND);
+
+					Shell shell = new Shell(display, SWT.NO_TRIM | SWT.NO_BACKGROUND);
 					shell.setLayout(new FillLayout());
-					
+
 					FontData[] data = parentShell.getFont().getFontData();
 					data[0].setHeight(fontSize);
 					Font font = new Font(display, data);
-					
+
 					shell.setFont(font);
-					
+
 					Label timeLabel = new Label(shell, SWT.NO_BACKGROUND);
 					timeLabel.setFont(font);
 					Util.magnifyFont(timeLabel, 0.8);
-					
+
 					String message = "No alarms set";
 					if (alarms.size() > 0 && alarms.get(0).isActive()) {
 						long currentTime = System.currentTimeMillis();
 						long alarmTime = alarms.get(0).getAlarmDate().getTime();
-						
+
 						long diff = alarmTime - currentTime;
-						
+
 						int minuteFactor = 1000 * 60;
 						int hourFactor = minuteFactor * 60;
-						
+
 						long hours = diff / hourFactor;
-						long minutes = (diff - hourFactor*hours) / minuteFactor;
-						
-						if (hours > 48) {			
+						long minutes = (diff - hourFactor * hours) / minuteFactor;
+
+						if (hours > 48) {
 							// If the date is more than two days from now, only print out the date itself
 							message = "Next alarm: " + alarms.get(0).getAlarmDate();
 						} else {
@@ -247,20 +246,19 @@ public class Starter {
 						}
 					}
 					timeLabel.setText(message);
-					
+
 					shell.pack();
-					
+
 					Rectangle area = parentShell.getClientArea();
 					Point location = parentShell.getLocation();
-					
-					shell.setLocation(
-							area.width / 2 + location.x - shell.getSize().x / 2,
+
+					shell.setLocation(area.width / 2 + location.x - shell.getSize().x / 2,
 							location.y + shell.getSize().y);
-					
+
 					shell.open();
-					
+
 					display.timerExec(5000, new Runnable() {
-						
+
 						@Override
 						public void run() {
 							shell.close();
@@ -287,130 +285,138 @@ public class Starter {
 		AlarmListener alarmListener = new AlarmListener(fontHeight);
 		AlarmManager.getManager().addAlarmManagerListener(alarmListener);
 
-		final Display display = Display.getDefault();
+		try {
+			final Display display = Display.getDefault();
 
-		final Shell topLevelShell;
+			final Shell topLevelShell;
 
-		if (debug) {
-			topLevelShell = new Shell(display);
-		} else {
-			topLevelShell = new Shell(display, SWT.NO_TRIM);
+			if (debug) {
+				topLevelShell = new Shell(display);
+			} else {
+				topLevelShell = new Shell(display, SWT.NO_TRIM);
 
-			// hide cursor
-			Color white = display.getSystemColor(SWT.COLOR_WHITE);
-			Color black = display.getSystemColor(SWT.COLOR_BLACK);
-			PaletteData palette = new PaletteData(new RGB[] { white.getRGB(), black.getRGB() });
-			ImageData sourceData = new ImageData(16, 16, 1, palette);
-			sourceData.transparentPixel = 0;
-			Cursor cursor = new Cursor(display, sourceData, 0, 0);
+				// hide cursor
+				Color white = display.getSystemColor(SWT.COLOR_WHITE);
+				Color black = display.getSystemColor(SWT.COLOR_BLACK);
+				PaletteData palette = new PaletteData(new RGB[] { white.getRGB(), black.getRGB() });
+				ImageData sourceData = new ImageData(16, 16, 1, palette);
+				sourceData.transparentPixel = 0;
+				Cursor cursor = new Cursor(display, sourceData, 0, 0);
 
-			topLevelShell.setCursor(cursor);
+				topLevelShell.setCursor(cursor);
+			}
+
+			topLevelShell.setText("AlarmClock");
+			StackLayout layout = new StackLayout();
+			topLevelShell.setLayout(layout);
+
+			FontData[] fontData = topLevelShell.getFont().getFontData();
+			fontData[0].setHeight(fontHeight);
+			topLevelShell.setFont(new Font(display, fontData));
+
+
+			ui = new IntegratedClockUI(topLevelShell, SWT.LEFT | SWT.RIGHT);
+
+			layout.topControl = ui;
+
+			ui.createButton("Set Alarm", SWT.LEFT, new Listener() {
+
+				@Override
+				public void handleEvent(Event event) {
+					AlarmSetter setter = new AlarmSetter(ui, SWT.NONE);
+					setter.addDisposeListener(new DisposeListener() {
+
+						@Override
+						public void widgetDisposed(DisposeEvent e) {
+							ui.hide(SWT.NONE);
+						}
+					});
+					ui.setPanel(setter, SWT.LEFT);
+					ui.hide(SWT.RIGHT);
+				}
+			});
+
+			ui.createButton("Mode", SWT.LEFT, new Listener() {
+
+				@Override
+				public void handleEvent(Event arg0) {
+					// TODO add option to set the mode of the alarm clock
+					// (enable/disable)
+				}
+			}).setEnabled(false);
+
+			ui.createButton("Manage alarms", SWT.RIGHT, new Listener() {
+
+				@Override
+				public void handleEvent(Event event) {
+					AlarmManagerUI manager = new AlarmManagerUI(topLevelShell, SWT.NONE);
+					manager.addDisposeListener(new DisposeListener() {
+
+						@Override
+						public void widgetDisposed(DisposeEvent e) {
+							ui.hide(SWT.NONE);
+						}
+					});
+					ui.setPanel(manager, SWT.RIGHT);
+					ui.hide(SWT.LEFT);
+				}
+			});
+
+			ui.createButton("List alarms", SWT.RIGHT, new Listener() {
+
+				@Override
+				public void handleEvent(Event arg0) {
+					AlarmList list = new AlarmList(topLevelShell, SWT.NONE);
+
+					list.addDisposeListener(new DisposeListener() {
+
+						@Override
+						public void widgetDisposed(DisposeEvent e) {
+							ui.hide(SWT.NONE);
+						}
+					});
+					ui.setPanel(list, SWT.RIGHT);
+					ui.hide(SWT.LEFT);
+				}
+			});
+
+			ui.createButton("Next alarm", SWT.RIGHT, new Listener() {
+
+				@Override
+				public void handleEvent(Event arg0) {
+					// pretend that the alarms have changed in order for the next
+					// alarm to be displayed
+					alarmListener.alarmsChanged();
+				}
+			});
+
+			if (!debug) {
+				Rectangle bounds = Display.getCurrent().getBounds();
+				topLevelShell.setSize(new Point(bounds.width, bounds.height));
+				topLevelShell.setMaximized(true);
+				topLevelShell.setFullScreen(true);
+
+				setUpDisplaySaver(display);
+			}
+
+			topLevelShell.open();
+
+			while (!topLevelShell.isDisposed()) {
+				if (!display.readAndDispatch()) {
+					display.sleep();
+				}
+			}
+			
+			display.dispose();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			// cancel timer
+			displayOffTimer.cancel();
+			
+			// shutdown background thread
+			AlarmManager.getManager().shutdown();
 		}
-
-		topLevelShell.setText("AlarmClock");
-		StackLayout layout = new StackLayout();
-		topLevelShell.setLayout(layout);
-
-		FontData[] fontData = topLevelShell.getFont().getFontData();
-		fontData[0].setHeight(fontHeight);
-		topLevelShell.setFont(new Font(display, fontData));
-
-
-		ui = new IntegratedClockUI(topLevelShell, SWT.LEFT | SWT.RIGHT);
-
-		layout.topControl = ui;
-
-		ui.createButton("Set Alarm", SWT.LEFT, new Listener() {
-
-			@Override
-			public void handleEvent(Event event) {
-				AlarmSetter setter = new AlarmSetter(ui, SWT.NONE);
-				setter.addDisposeListener(new DisposeListener() {
-
-					@Override
-					public void widgetDisposed(DisposeEvent e) {
-						ui.hide(SWT.NONE);
-					}
-				});
-				ui.setPanel(setter, SWT.LEFT);
-				ui.hide(SWT.RIGHT);
-			}
-		});
-
-		ui.createButton("Mode", SWT.LEFT, new Listener() {
-
-			@Override
-			public void handleEvent(Event arg0) {
-				// TODO add option to set the mode of the alarm clock
-				// (enable/disable)
-			}
-		}).setEnabled(false);
-
-		ui.createButton("Manage alarms", SWT.RIGHT, new Listener() {
-
-			@Override
-			public void handleEvent(Event event) {
-				AlarmManagerUI manager = new AlarmManagerUI(topLevelShell, SWT.NONE);
-				manager.addDisposeListener(new DisposeListener() {
-
-					@Override
-					public void widgetDisposed(DisposeEvent e) {
-						ui.hide(SWT.NONE);
-					}
-				});
-				ui.setPanel(manager, SWT.RIGHT);
-				ui.hide(SWT.LEFT);
-			}
-		});
-
-		ui.createButton("List alarms", SWT.RIGHT, new Listener() {
-
-			@Override
-			public void handleEvent(Event arg0) {
-				AlarmList list = new AlarmList(topLevelShell, SWT.NONE);
-
-				list.addDisposeListener(new DisposeListener() {
-
-					@Override
-					public void widgetDisposed(DisposeEvent e) {
-						ui.hide(SWT.NONE);
-					}
-				});
-				ui.setPanel(list, SWT.RIGHT);
-				ui.hide(SWT.LEFT);
-			}
-		});
-
-		ui.createButton("Next alarm", SWT.RIGHT, new Listener() {
-
-			@Override
-			public void handleEvent(Event arg0) {
-				// pretend that the alarms have changed in order for the next
-				// alarm to be displayed
-				alarmListener.alarmsChanged();
-			}
-		});
-
-		if (!debug) {
-			Rectangle bounds = Display.getCurrent().getBounds();
-			topLevelShell.setSize(new Point(bounds.width, bounds.height));
-			topLevelShell.setMaximized(true);
-			topLevelShell.setFullScreen(true);
-
-			setUpDisplaySaver(display);
-		}
-
-		topLevelShell.open();
-
-		while (!topLevelShell.isDisposed()) {
-			if (!display.readAndDispatch()) {
-				display.sleep();
-			}
-		}
-
-		display.dispose();
-
-		displayOffTimer.cancel();
 	}
 
 	/**
