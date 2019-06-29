@@ -7,10 +7,14 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
+
+import org.eclipse.swt.widgets.Display;
 
 import util.NTPException;
 import util.Util;
@@ -78,11 +82,18 @@ public class AlarmManager implements Serializable, IAlarmListener {
 	 */
 	protected transient List<IAlarmManagerListener> alarmListener;
 
+	/**
+	 * A counter for how often saving this manager has failed before
+	 */
+	protected transient int failedSaves;
+
 
 	protected AlarmManager() {
 		alarms = new ArrayList<IAlarm>();
 
 		alarmLock = new ReentrantLock();
+
+		failedSaves = 0;
 	}
 
 	/**
@@ -114,7 +125,7 @@ public class AlarmManager implements Serializable, IAlarmListener {
 			}
 		}
 	}
-	
+
 	public final void shutdown() {
 		if (alarmThread != null) {
 			// close the background thread
@@ -529,12 +540,32 @@ public class AlarmManager implements Serializable, IAlarmListener {
 
 			out.close();
 
-			// if temp file seems okay overwrite the actual file and delete temp-file
-			File tempFile = new File(tempName);
-			if (tempFile.exists() && tempFile.length() > 0) {
-				tempFile.renameTo(new File(SAVE_PATH));
+			// Try to load the manager from the serialized file in order to check its
+			// integrity
+			AlarmManager manager = load(tempName);
+
+			if (manager == null) {
+				// Something has gone wrong during serialization
+				failedSaves++;
+
+				if (failedSaves <= 3) {
+					this.save();
+				} else {
+					// It failed 3 times already -> abort the program and the UI
+					Display.getCurrent().close();
+					throw new RuntimeException("Unable to save the alarms");
+				}
+
+				return;
 			}
-			
+
+			failedSaves = 0;
+
+			// if the manager could be successfully deserialized, the temp-file seems okay
+			// -> overwrite actual file
+			File tempFile = new File(tempName);
+			Files.move(tempFile.toPath(), new File(SAVE_PATH).toPath(), StandardCopyOption.REPLACE_EXISTING );
+
 			tempFile.delete();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -544,13 +575,24 @@ public class AlarmManager implements Serializable, IAlarmListener {
 	}
 
 	/**
-	 * Loads the saved manager from disk. Note that this method assumes that the
-	 * saved file does exist!
+	 * Loads the saved manager from disk (default path). Note that this method
+	 * assumes that the saved file does exist!
 	 */
 	protected static AlarmManager load() {
+		return load(SAVE_PATH);
+	}
+
+	/**
+	 * Loads the saved manager from disk. Note that this method assumes that the
+	 * saved file does exist!
+	 * 
+	 * @param path
+	 *            The path to load from
+	 */
+	protected static AlarmManager load(String path) {
 		AlarmManager manager = null;
 		try {
-			ObjectInputStream in = new ObjectInputStream(new FileInputStream(SAVE_PATH));
+			ObjectInputStream in = new ObjectInputStream(new FileInputStream(path));
 			manager = (AlarmManager) in.readObject();
 			in.close();
 		} catch (IOException | ClassNotFoundException e) {
