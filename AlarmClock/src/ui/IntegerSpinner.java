@@ -144,7 +144,7 @@ public class IntegerSpinner extends FontInheritComposite {
 			}
 		});
 		
-		up.addListener(SWT.Selection, new Listener() {
+		up.addListener(SWT.MouseDown, new Listener() {
 			
 			@Override
 			public void handleEvent(Event event) {
@@ -160,7 +160,7 @@ public class IntegerSpinner extends FontInheritComposite {
 			}
 		});
 		
-		down.addListener(SWT.Selection, new Listener() {
+		down.addListener(SWT.MouseDown, new Listener() {
 			
 			@Override
 			public void handleEvent(Event event) {
@@ -268,7 +268,7 @@ public class IntegerSpinner extends FontInheritComposite {
 	}
 	
 	/**
-	 * Notifes the registered listeners that the valiue of this spinner has
+	 * Notifies the registered listeners that the value of this spinner has
 	 * changed
 	 */
 	protected void notifyListeners() {

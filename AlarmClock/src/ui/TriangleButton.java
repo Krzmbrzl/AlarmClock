@@ -5,12 +5,12 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 
-public class TriangleButton extends Button implements PaintListener, Listener {
+// Use Composite instead of Button as a super class as the Button might not allow for custom appearance
+public class TriangleButton extends Composite implements PaintListener, Listener {
 	
 	/**
 	 * The color of the triangle
@@ -92,7 +92,7 @@ public class TriangleButton extends Button implements PaintListener, Listener {
 	
 	/**
 	 * Sets the color of this triangle. If it is currently visible it will be
-	 * redrawn in order to refelct the changes
+	 * redrawn in order to reflect the changes
 	 * 
 	 * @param color
 	 *            The color to use. <b>This color will not be disposed
@@ -129,9 +129,11 @@ public class TriangleButton extends Button implements PaintListener, Listener {
 	public void handleEvent(Event event) {
 		if (event.type == SWT.MouseEnter) {
 			mouseOverButton = true;
+			this.redraw();
 		} else {
 			if (event.type == SWT.MouseExit) {
 				mouseOverButton = false;
+				this.redraw();
 			}
 		}
 	}
