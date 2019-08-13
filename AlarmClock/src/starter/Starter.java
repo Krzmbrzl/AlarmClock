@@ -420,7 +420,7 @@ public class Starter {
 			displayOffTimer.cancel();
 			
 			// shutdown background thread
-			AlarmManager.getManager().shutdown();
+			AlarmManager.shutdown();
 		}
 	}
 

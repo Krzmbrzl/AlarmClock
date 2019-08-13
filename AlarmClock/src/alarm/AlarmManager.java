@@ -104,6 +104,16 @@ public class AlarmManager implements Serializable, IAlarmListener {
 
 		return MANAGER;
 	}
+	
+	/**
+	 * Shuts down the manager if one has been instantiated already.
+	 * If not this method will simply exit
+	 */
+	public static final void shutdown() {
+		if (MANAGER != null) {
+			MANAGER.doShutdown();
+		}
+	}
 
 	/**
 	 * Initializes the manager
@@ -126,7 +136,10 @@ public class AlarmManager implements Serializable, IAlarmListener {
 		}
 	}
 
-	public final void shutdown() {
+	/**
+	 * Shuts down this manager instance by interrupting the alarmThread
+	 */
+	public final void doShutdown() {
 		if (alarmThread != null) {
 			// close the background thread
 			alarmThread.interrupt();
@@ -139,10 +152,10 @@ public class AlarmManager implements Serializable, IAlarmListener {
 	 * @param alarm
 	 *            The alarm to add
 	 * @param notifyListener
-	 *            Indicates whether the liostener should be notified about this
+	 *            Indicates whether the listener should be notified about this
 	 *            change
 	 * @param reconfigure
-	 *            Inidcates whether the alarms should be reconfigured automatically
+	 *            Indicates whether the alarms should be reconfigured automatically
 	 */
 	protected void addAlarm(IAlarm alarm, boolean notifyListener, boolean reconfigure) {
 		synchronized (alarmLock) {
