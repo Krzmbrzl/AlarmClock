@@ -302,6 +302,14 @@ public class AlarmManager implements Serializable, IAlarmListener {
 		if (alarmThread != null) {
 			// Stop the thread in order to requeue
 			alarmThread.interrupt();
+			
+			// Wait for the thread to actually die before performing any other stuff
+			try {
+				alarmThread.join();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+				System.exit(1);
+			}
 		}
 
 		alarmThread = new Thread(new Runnable() {
