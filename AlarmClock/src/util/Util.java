@@ -58,7 +58,7 @@ public class Util {
 	 *             This is thrown when the connection to the NTP servers failed
 	 */
 	public static long getNTPTime() throws NTPException {
-		String[] hosts = new String[] { "0.de.pool.ntp.org",
+		String[] hosts = new String[] { "0.pool.ntp.org", "1.pool.ntp.org", "2.pool.ntp.org", "3.pool.ntp.org", "0.de.pool.ntp.org",
 				"1.de.pool.ntp.org", "2.de.pool.ntp.org", "3.de.pool.ntp.org" };
 		
 		NTPUDPClient client = new NTPUDPClient();
@@ -75,7 +75,8 @@ public class Util {
 				return info.getMessage().getTransmitTimeStamp().getTime();
 				
 			} catch (IOException e) {
-				e.printStackTrace();
+				// Don't print as the unavailability of a single server isn't important
+				// e.printStackTrace();
 			}
 		}
 		
