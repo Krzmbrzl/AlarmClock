@@ -209,7 +209,7 @@ public class AlarmManager implements Serializable, IAlarmListener {
 	}
 
 	/**
-	 * Removes the given alarm fro this manager
+	 * Removes the given alarm from this manager
 	 * 
 	 * @param alarm
 	 *            The alarm to remove
@@ -281,11 +281,7 @@ public class AlarmManager implements Serializable, IAlarmListener {
 				return;
 			}
 
-			if (alarms.size() == 1) {
-				requeueAlarms = !alarms.get(0).equals(currentAlarm);
-			} else {
-				requeueAlarms = !alarms.get(0).equals(currentAlarm);
-			}
+			requeueAlarms = !alarms.get(0).equals(currentAlarm);
 		}
 
 		if (requeueAlarms) {
