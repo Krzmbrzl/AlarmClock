@@ -31,7 +31,7 @@ public class AlarmList extends FontInheritComposite
 	 */
 	protected FontInheritButton cancelButton;
 	/**
-	 * The button that allows the selected alarm to be avtivated/deactivated
+	 * The button that allows the selected alarm to be activated/deactivated
 	 */
 	protected FontInheritButton activateButton;
 	/**
@@ -40,7 +40,7 @@ public class AlarmList extends FontInheritComposite
 	protected FontInheritButton changeButton;
 	
 	/**
-	 * Maps the list index to the respectve alarm
+	 * Maps the list index to the respective alarm
 	 */
 	protected HashMap<Integer, IAlarm> alarmMap;
 	/**
