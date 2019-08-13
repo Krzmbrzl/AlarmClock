@@ -296,7 +296,7 @@ public class AlarmSetter extends FontInheritComposite {
 		GridLayout dayLayout = new GridLayout(4, true);
 		daySelection.setLayout(dayLayout);
 		
-		// Create repeeat label
+		// Create repeat label
 		FontInheritLabel repeatLabel = new FontInheritLabel(comp, SWT.NONE);
 		repeatLabel.setText("Repeat:");
 		
