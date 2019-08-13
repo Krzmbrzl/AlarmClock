@@ -143,10 +143,10 @@ public class AlarmList extends FontInheritComposite
 	}
 	
 	/**
-	 * Creates and initalizes the three buttom buttons
+	 * Creates and initializes the three bottom buttons
 	 * 
 	 * @param parent
-	 *            The parent composite for the cuttons
+	 *            The parent composite for the buttons
 	 */
 	protected void initializeButtons(Composite parent) {
 		cancelButton = new FontInheritButton(parent, SWT.PUSH | SWT.CENTER);
