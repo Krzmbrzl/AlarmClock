@@ -53,7 +53,7 @@ public class Util {
 	/**
 	 * Gets the current time from a NTP server.
 	 * 
-	 * @return The time in millisceonds.
+	 * @return The time in milliseconds.
 	 * @throws NTPException
 	 *             This is thrown when the connection to the NTP servers failed
 	 */
