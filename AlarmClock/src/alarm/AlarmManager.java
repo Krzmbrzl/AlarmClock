@@ -420,7 +420,7 @@ public class AlarmManager implements Serializable, IAlarmListener {
 
 	/**
 	 * Reschedules the current alarm. This method gets called when the current alarm
-	 * has been invoked (or cancelled because it was way to late
+	 * has been invoked (or cancelled because it was way to late)
 	 */
 	protected void rescheduleCurrentAlarm() {
 		if (currentAlarm.getRepetitionCycle() != ERepetition.NONE) {
