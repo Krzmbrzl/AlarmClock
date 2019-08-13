@@ -287,6 +287,11 @@ public class Starter {
 
 		try {
 			final Display display = Display.getDefault();
+			
+			if (!display.getThread().equals(Thread.currentThread())) {
+				// something is wrong - there shouldn't have been a SWT Display thread at this point
+				throw new IllegalStateException("Unable to create new Display as one exists already...");
+			}
 
 			final Shell topLevelShell;
 
