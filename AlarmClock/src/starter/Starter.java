@@ -63,6 +63,10 @@ public class Starter {
 	 * The used clock UI
 	 */
 	protected static IntegratedClockUI ui;
+	/**
+	 * The used {@linkplain Display}
+	 */
+	protected static Display display;
 
 
 	static class AlarmListener implements IAlarmManagerListener {
@@ -286,7 +290,7 @@ public class Starter {
 		AlarmManager.getManager().addAlarmManagerListener(alarmListener);
 
 		try {
-			final Display display = Display.getDefault();
+			display = Display.getDefault();
 			
 			if (!display.getThread().equals(Thread.currentThread())) {
 				// something is wrong - there shouldn't have been a SWT Display thread at this point
@@ -418,6 +422,14 @@ public class Starter {
 		} finally {
 			// cancel timer
 			displayOffTimer.cancel();
+			
+			if (ui != null && ! ui.isDisposed()) {
+				ui.dispose();
+			}
+			
+			if (display != null && ! display.isDisposed()) {
+				display.dispose();
+			}
 			
 			// shutdown background thread
 			AlarmManager.shutdown();
