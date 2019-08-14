@@ -296,10 +296,14 @@ public class AlarmManager implements Serializable, IAlarmListener {
 	 * updated if necessary. This loop will continue until the Thread is interrupted
 	 * or there are no more alarms.<br>
 	 * This method will also interrupt {@link #alarmThread} if it does already exist
-	 * and will create a new one instead
+	 * and will create a new one instead if the calling thread is not equal to the alarmThread.
 	 */
 	protected void queueAlarms() {
 		if (alarmThread != null) {
+			if (alarmThread.equals(Thread.currentThread())) {
+				// The queuing is handled in this thread already - no need to create a new alarmThread
+				return;
+			}
 			// Stop the thread in order to requeue
 			alarmThread.interrupt();
 			
@@ -307,10 +311,10 @@ public class AlarmManager implements Serializable, IAlarmListener {
 			try {
 				alarmThread.join();
 			} catch (InterruptedException e) {
-				e.printStackTrace();
-				System.exit(1);
+				throw new IllegalThreadStateException("Thread got interrupted (possibly by itself) while waiting for the alarmThread to terminate"); 
 			}
 		}
+		
 
 		alarmThread = new Thread(new Runnable() {
 
